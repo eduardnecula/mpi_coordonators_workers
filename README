@@ -1,0 +1,74 @@
+Tema 3 APD
+
+Necula Eduard-Ionut 332CA
+Automatica si Calulatoare, CTI
+Email: ne_eduard_ionut@yahoo.com
+
+
+Rulare tema: mpirun -np 9 ./tema3 12 0 --oversubscribe
+    9 - numarul de workeri
+    ./tema3 executabilul dupa ce se ruleaza make
+    12 - dimensiunea vectorului ce trebuie dublat
+    0 - daca este asta am legaturi intre coordonatori
+    (daca era 1 in loc de 0, o legatura se taia)
+    --oversubscribe : flag pentru a nu comenta programul
+                      cand folosesti mai multi workeri
+
+Pasi implementare tema:
+
+                Etapa 1 - Implementare topologie:
+
+1.  Procesele Coordonator: 0, 1, 2, vor citi fiecare din fisier.
+2.  Fiecare proces coordonator, trimite un mesaj workerilor, in care le spune
+cine este coordonatorul lor, iar workerii primesc mesajele.
+3.  Coordonatorul 0, da mesaje coordonotorilor 1 si 2, si le cere vectorul lor
+    de workeri, iar acestia raspund.
+4. Coordonatorul 1, da mesaje coordonatorilor 0 si 2, si le cere vectorul lor
+    de workeri, iar acestia raspund.
+5. Coordonatorul 2, da mesaje coordonatorilor 0 si 1, si le cere vectorul lor
+    de workeri, iar acestia raspund.
+6. Dupa ce fiecare coordonator si-a primit inapoi mesajele vrute, vor afisa
+topologia dobandita.
+7. Dupa ce afiseaza, fiecare coordonator trimite fiecarui worker, datele pe care,
+acesta le are, datele despre ceilalti coordonatori, dar si ale lui. Workerii nu vorbesc
+intre ei, doar coordonatorii le comunica mesajele.
+8. Dupa ce un worker primeste topologia de la fiecare coordonator, o afiseaza.
+
+Observatii:
+        Dupa fiecare mesaj trimis, se afiseaza un mesaj de forma M(rang, id_trimis).
+        Rang este id-ul coordonatorului sau a workerului, iar id_trimis este id-ul
+    workerului / coordonatorului, ce va primi mesajul.
+        Dupa fiecare mesaj de tip MPI_Send, se va astepta un mesaj de tip MPI_Recv.
+        Programul daca nu-l scrii bine, se va bloca la un MPI_Recv, deoarece din
+    experinta cu programul, inseamna ca trimiti prea putine mesaje.
+        Inainte sa trimit fiecare vector cu topologia, am trimis si un mesaj inainte cu
+    numarul de elemente ale vectorului.
+        Toata tema este o colectie de (trimite mesaj - primeste mesaj), nu este nimic
+    abstract prin cod.
+
+                Etapa 2 - Realizarea Calculelor
+
+Pasi implementare:
+
+1. Coordonatorul 0 va crea vectorul de elemente (linia 330 din main, aici incepe etapa)
+2. Va vedea cate procese worker are
+3. Folosind start si end, din primul laborator de la apd, se va imparti numarul de
+elemente pentru fiecare worker.
+4. Coordonatorul 0, trimite mesaje workerilor lui, un mesaj cu start,unul cu end si unul cu vectorul de modificat
+5. Acestia trimit inapoi vectorul modificat.
+6. Coordonatorul 0, trimite mesaje coordonatorilor 1 si 2, si le spune care ar fi startul
+si endul fiecarui worker (deoarece coordonatorul 0 stie cati workeri are fiecare coordonator).
+7. Coordonatorii trimit mai departe mesaje, fiecarui worker pe care il are cu informatiile
+primite de la coordonatorul 0.
+8. Workarii calculeaza apoi rezultatele, si ii trimit inapoi coordonatorilor 1 si 2, fiecare
+work trimite mesaje doar coordinatorului
+9. Coordinatorii 1 si 2, trimit apoi rezultatele primite de la workeri, coordinatorului 0
+10. Intr-un final la Coordinatorul 0, se vor intoarce toate mesajele, iar apoi vectorul
+va fi formatat intr-un string, pentru a nu avea probleme cu afisarea, ce strica uneori testele
+
+Observatii:
+        In aceasta etapa, s-au modificat printf-urile mari, mesajele au fost apoi formatate intr-un
+    singur string, pentru ca altfel iti spune ca tu nu trimiti mesaje corecte, dar de fapt
+    un printf strica ceva, apoi se baga peste afisarea pe care o verifica checkerul.
+        Lungimea dimesiunii vectorului se transmite de la coordonatorul 0, la workerii lui, apoi la
+    restul de coordonatori, ce trimit mai departe si ei, dimensiunea vectorului la workerii lor.
